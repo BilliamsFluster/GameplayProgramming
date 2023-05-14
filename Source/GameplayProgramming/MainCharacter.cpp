@@ -2,11 +2,15 @@
 
 
 #include "MainCharacter.h"
+#include "CharacterPlayerState.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Door.h"
+#include "DoorKey.h"
 
 // Sets default values
 AMainCharacter::AMainCharacter()
 {
-
+	
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -40,7 +44,7 @@ AMainCharacter::AMainCharacter()
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	CharacterState = Cast<ACharacterPlayerState>(GetPlayerState());
 }
 
 // Called every frame
@@ -66,6 +70,9 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &AMainCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AMainCharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainCharacter::Interact);
+
+
 }
 void AMainCharacter::MoveForward(float Value)
 {
@@ -78,6 +85,10 @@ void AMainCharacter::MoveForward(float Value)
 		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
+		if (CharacterState)
+		{
+			//CharacterState->TakeDamage(0.001f);
+		}
 	}
 }
 
@@ -105,4 +116,20 @@ void AMainCharacter::LookUpAtRate(float Rate)
 {
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 
+}
+
+void AMainCharacter::Interact()
+{
+	FVector TraceLength = GetActorLocation() + (GetActorForwardVector() * 1000);
+	TArray<AActor*> Actors;
+
+	UWorld* World = GetWorld();
+
+	FHitResult OutHit;
+	World->LineTraceSingleByChannel(OutHit, GetActorLocation(), TraceLength, ECollisionChannel::ECC_Visibility);
+	if (OutHit.bBlockingHit && OutHit.GetActor()->ActorHasTag("Interactable"))
+	{
+		ADoor* Door = Cast<ADoor>(OutHit.GetActor());
+		Door->Interact(this, DoorKeys);
+	}
 }
