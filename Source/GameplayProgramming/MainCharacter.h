@@ -43,7 +43,7 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	TArray<class ADoorKey*>& GetDoorKeys() { return DoorKeys; }
+	TArray<FName>& GetDoorKeys() { return DoorKeys; }
 	
 
 private:
@@ -65,5 +65,5 @@ private:
 	class ACharacterPlayerState* CharacterState;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
-	TArray<ADoorKey*> DoorKeys;
+	TArray<FName> DoorKeys;
 };

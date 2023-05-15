@@ -16,7 +16,7 @@ class GAMEPLAYPROGRAMMING_API ADoor : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ADoor();
-	void Interact(ACharacter* Character, TArray<class ADoorKey*> DoorKeys);
+	void Interact(ACharacter* Character, TArray<FName> DoorKeys);
 
 protected:
 	// Called when the game starts or when spawned

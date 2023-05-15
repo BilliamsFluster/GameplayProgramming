@@ -121,7 +121,6 @@ void AMainCharacter::LookUpAtRate(float Rate)
 void AMainCharacter::Interact()
 {
 	FVector TraceLength = GetActorLocation() + (GetActorForwardVector() * 1000);
-	TArray<AActor*> Actors;
 
 	UWorld* World = GetWorld();
 
