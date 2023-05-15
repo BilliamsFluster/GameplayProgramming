@@ -63,14 +63,14 @@ void ADoor::Tick(float DeltaTime)
     
 }
 
-void ADoor::Interact(ACharacter* Character, TArray<class ADoorKey*> DoorKeys)
+void ADoor::Interact(ACharacter* Character, TArray<FName> DoorKeys)
 {
     
     if (Character)
     {
         for (int i = 0; i < DoorKeys.Num(); i++)
         {
-            if (AcceptedDoorKey == DoorKeys[i]->GetKeyName())
+            if (AcceptedDoorKey == DoorKeys[i])
             {
                 CanOpenDoor = true;
                 break;
@@ -86,9 +86,7 @@ void ADoor::Interact(ACharacter* Character, TArray<class ADoorKey*> DoorKeys)
 
                 FVector DoorForward = GetActorForwardVector();
 
-                // Log the vectors
-                UE_LOG(LogTemp, Warning, TEXT("DoorToCharacter: %s"), *DoorToCharacter.ToString());
-                UE_LOG(LogTemp, Warning, TEXT("DoorForward: %s"), *DoorForward.ToString());
+               
 
                 // Check if the door and character are on the same side
                 bDoorOnSameSide = FVector::DotProduct(DoorToCharacter, DoorForward) >= 0;

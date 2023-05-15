@@ -14,7 +14,7 @@ ADoorKey::ADoorKey()
 	KeyMesh->SetupAttachment(GetRootComponent());
 
 	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
-	PickupSphere->SetupAttachment(GetRootComponent());
+	PickupSphere->SetupAttachment(KeyMesh);
 
 
 
@@ -36,8 +36,25 @@ void ADoorKey::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other
 		AMainCharacter* Character = Cast<AMainCharacter>(OtherActor);
 		if(Character)
 		{
+			bool KeyExists = false;
+			FName NewKey = this->GetKeyName();
+
+			// Check if the key already exists
+			for (FName Key : Character->GetDoorKeys())
+			{
+				if (Key == NewKey)
+				{
+					KeyExists = true;
+					break;
+				}
+			}
+
+			// If the key does not exist, add it
+			if (!KeyExists)
+			{
+				Character->GetDoorKeys().Add(NewKey);
+			}
 			
-			Character->GetDoorKeys().Add(this);
 			Destroy();
 		}
 	}
