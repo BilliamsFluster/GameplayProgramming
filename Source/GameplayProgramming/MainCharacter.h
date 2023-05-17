@@ -66,4 +66,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
 	TArray<FName> DoorKeys;
+
+	
 };
