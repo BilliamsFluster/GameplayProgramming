@@ -6,11 +6,21 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Door.h"
 #include "DoorKey.h"
+#include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseEvent_Hearing.h"
+
+
 
 // Sets default values
 AMainCharacter::AMainCharacter()
+	:MaxHealth(100.0f), Health(MaxHealth)
 {
-	
+	SetupStimulus();
+	TeamId = FGenericTeamId(1);
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -37,6 +47,9 @@ AMainCharacter::AMainCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // Speed of rotation when character is moving.
 	GetCharacterMovement()->JumpZVelocity = 600.0f;
 	GetCharacterMovement()->AirControl = 0.2f;
+
+	GetCapsuleComponent()->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
 
 }
 
@@ -132,3 +145,41 @@ void AMainCharacter::Interact()
 		Door->Interact(this, DoorKeys);
 	}
 }
+
+float AMainCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (Health - Damage <= 0)
+	{
+		Health = 0;
+		OnDeath();
+	}
+	else
+	{
+		Health -= Damage;
+	}
+
+	return Health;
+
+}
+
+void AMainCharacter::OnDeath()
+{
+	GetCharacterMovement()->DisableMovement();
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	
+}
+
+void AMainCharacter::SetupStimulus()
+{
+	Stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimulusComponent"));
+
+	//register the senses
+	Stimulus->RegisterForSense(TSubclassOf<UAISense_Sight>());
+	Stimulus->RegisterForSense(TSubclassOf<UAISense_Hearing>());
+
+	Stimulus->RegisterWithPerceptionSystem();
+}
+
+
