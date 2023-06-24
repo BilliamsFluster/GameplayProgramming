@@ -7,11 +7,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
+#include "GenericTeamAgentInterface.h"
 #include "MainCharacter.generated.h"
 
 
+
 UCLASS()
-class GAMEPLAYPROGRAMMING_API AMainCharacter : public ACharacter
+class GAMEPLAYPROGRAMMING_API AMainCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -37,6 +39,11 @@ protected:
 
 	void Interact();
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	
+	void OnDeath();
+	void SetupStimulus();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -44,6 +51,19 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	TArray<FName>& GetDoorKeys() { return DoorKeys; }
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
+
+	
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))
+	float MaxHealth;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float Health;
+
+	FGenericTeamId TeamId;
+	
+
 	
 
 private:
@@ -53,7 +73,7 @@ private:
 
 	// Camera that follows the character.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		UCameraComponent* FollowCamera;
+	UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float BaseTurnRate;
@@ -66,6 +86,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
 	TArray<FName> DoorKeys;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	class UAIPerceptionStimuliSourceComponent* Stimulus;
 
 	
 };

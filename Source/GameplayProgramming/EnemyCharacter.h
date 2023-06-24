@@ -35,12 +35,71 @@ public:
 
 	void UnStunEnemy();
 
+public:
+	UFUNCTION(BlueprintCallable, Category = "Enable/Disable Weapon Collision")
+	void EnableLeftSwordCollision();
+
+	UFUNCTION(BlueprintCallable, Category = "Enable/Disable Weapon Collision")
+	void DisableLeftSwordCollision();
+
+	UFUNCTION(BlueprintCallable,Category = "Enable/Disable Weapon Collision")
+	void EnableRightSwordCollision();
+
+	UFUNCTION(BlueprintCallable, Category = "Enable/Disable Weapon Collision")
+	void DisableRightSwordCollision();
+
+	UFUNCTION(Category = "WeaponOverlap")
+	void OnLeftWeaponOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(Category = "WeaponOverlap")
+	void OnLeftWeaponOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(Category = "WeaponOverlap")
+	void OnRightWeaponOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(Category = "WeaponOverlap")
+	void OnRightWeaponOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(Category = "AttackSphereOverlap")
+	void OnAttackOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(Category = "AttackSphereOverlap")
+	void OnAttackOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "AttackSphereOverlap")
+	virtual void Attack();
+
+	void ResetEnemyAttack();
+
+
 private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* LeftSwordCollision;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* AttackCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* RightSwordCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	float AttackCollisionRadius;
+
+	FTimerHandle EnemyAttackTimer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	float EnemyAttackTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	float EnemyDamage;
+
+
+
+private:
+	class UEnemyAnimInstance* EnemyAnim;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Patrol", meta = (AllowPrivateAccess = "true"))
 	APathPoints* PatrolPath;
-
-	class UAIPerceptionStimuliSourceComponent* Stimulus;
-	void SetupStimulus();
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes|Stun", meta = (AllowPrivateAccess = "true"))

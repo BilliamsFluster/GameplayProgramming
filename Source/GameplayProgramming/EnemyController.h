@@ -39,23 +39,23 @@ private:
 
 	class UAIPerceptionComponent* PerceptionComponent;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
-	float Age = 2.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
+	float Age;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
-	float ViewAngleDeg = 90.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
+	float ViewAngleDeg;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
-	float SightRadius = 200.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
+	float SightRadius;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
-	float LoseSightFalloff = 500.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
+	float LoseSightFalloff;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
-	float SuccessRange = 500.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sight", meta = (AllowPrivateAccess = "true"))
+	float SuccessRange;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Hearing", meta = (AllowPrivateAccess = "true"))
-	float HearingRange = 400.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hearing", meta = (AllowPrivateAccess = "true"))
+	float HearingRange;
 
 
 
@@ -63,6 +63,7 @@ private:
 	void OnTargetUpdated(AActor* Actor, FAIStimulus const Stimulus);
 
 	void SetupPerceptionSystem();
+	void ConfigureSenses();
 
 
 	
