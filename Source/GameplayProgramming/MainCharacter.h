@@ -53,6 +53,11 @@ public:
 	TArray<FName>& GetDoorKeys() { return DoorKeys; }
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 
+	float GetHealth() const { return Health; }
+	float GetMaxHealth() const { return MaxHealth; }
+
+	void SetHealth(float health) { Health = health; }
+	void SetMaxHealth(float maxHealth) { MaxHealth = maxHealth; }
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))

@@ -5,6 +5,7 @@
 #include "EnemyCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Components/CapsuleComponent.h"
+#include "EnemyAnimInstance.h"
 #include "EnemyController.h"
 
 
@@ -36,33 +37,40 @@ EBTNodeResult::Type UChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerCompo
 			
 			if (Enemy)
 			{
-				//if we can see the player
-				if (EnemyController->GetBlackboard()->GetValueAsBool(CanSeePlayer.SelectedKeyName))
+				UEnemyAnimInstance* EnemyAnim;
+				EnemyAnim = Cast<UEnemyAnimInstance>(Enemy->GetMesh()->GetAnimInstance());
+
+				if (!EnemyAnim->bIsStunned)
 				{
-					FVector EnemyLocation = Enemy->GetActorLocation();
-					FVector TraceLength = Enemy->GetCapsuleComponent()->GetForwardVector() * 600.f;
-					FVector PlayerLocation = EnemyController->GetBlackboard()->GetValueAsVector(Location.SelectedKeyName);
-
-					UWorld* World = GetWorld();
-					FHitResult OutHit;
-
-					// Enemy trace channel 
-					World->LineTraceSingleByChannel(OutHit, EnemyLocation, (EnemyLocation + TraceLength), ECollisionChannel::ECC_GameTraceChannel1);
-
-
-					//did we hit anything
-					if (OutHit.bBlockingHit)
+					//if we can see the player
+					if (EnemyController->GetBlackboard()->GetValueAsBool(CanSeePlayer.SelectedKeyName))
 					{
-						//move to the player
-						EnemyController->MoveToLocation(PlayerLocation, 30.f);
+						FVector EnemyLocation = Enemy->GetActorLocation();
+						FVector TraceLength = Enemy->GetCapsuleComponent()->GetForwardVector() * 600.f;
+						FVector PlayerLocation = EnemyController->GetBlackboard()->GetValueAsVector(Location.SelectedKeyName);
 
-						// Finish the task
-						FinishLatentTask(OwnerComponent, EBTNodeResult::Succeeded);
-						// We have succeeded doing this task
-						return EBTNodeResult::Succeeded;
-					}
+						UWorld* World = GetWorld();
+						FHitResult OutHit;
+
+						// Enemy trace channel 
+						World->LineTraceSingleByChannel(OutHit, EnemyLocation, (EnemyLocation + TraceLength), ECollisionChannel::ECC_GameTraceChannel1);
+
+
+						//did we hit anything
+						if (OutHit.bBlockingHit)
+						{
+							//move to the player
+							EnemyController->MoveToLocation(PlayerLocation, 30.f);
+
+							// Finish the task
+							FinishLatentTask(OwnerComponent, EBTNodeResult::Succeeded);
+							// We have succeeded doing this task
+							return EBTNodeResult::Succeeded;
+						}
 
 					
+					}
+
 				}
 			}
 		}
