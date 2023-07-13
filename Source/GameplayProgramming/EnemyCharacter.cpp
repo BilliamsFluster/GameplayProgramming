@@ -13,6 +13,7 @@
 #include "MainCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Particles/ParticleSystem.h"
 
 
 // Sets default values
@@ -101,13 +102,22 @@ void AEnemyCharacter::StunEnemy()
 	AEnemyController* EnemyController = Cast<AEnemyController>(BaseController);
 	if (EnemyController)
 	{
-		// get the is stunned black board key 
-		EnemyController->GetBlackboard()->SetValueAsBool(UKismetSystemLibrary::MakeLiteralName("IsStunned"), true);
+		if (!EnemyAnim->bIsStunned)
+		{
+			// get the is stunned black board key 
+			EnemyController->GetBlackboard()->SetValueAsBool(UKismetSystemLibrary::MakeLiteralName("IsStunned"), true);
 
-		// Set up a timer to call UnstunEnemy after the stun duration
-		FTimerHandle UnstunTimerHandle;
-		EnemyAnim->bIsStunned = true;
-		GetWorld()->GetTimerManager().SetTimer(UnstunTimerHandle, this, &AEnemyCharacter::UnStunEnemy, StunTime, false);
+			// Set up a timer to call UnstunEnemy after the stun duration
+			FTimerHandle UnstunTimerHandle;
+			EnemyAnim->bIsStunned = true;
+			if (StunParticle)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), StunParticle, FTransform{ GetActorRotation(),GetActorLocation(),{1,1,1} });
+
+			}
+			GetWorld()->GetTimerManager().SetTimer(UnstunTimerHandle, this, &AEnemyCharacter::UnStunEnemy, StunTime, false);
+
+		}
 	}
 }
 

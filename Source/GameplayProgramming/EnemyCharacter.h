@@ -92,6 +92,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
 	float EnemyDamage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stun Particle", meta = (AllowPrivateAccess = "true"))
+	class UParticleSystem* StunParticle;
 
 
 
