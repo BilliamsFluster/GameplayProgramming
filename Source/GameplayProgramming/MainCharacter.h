@@ -58,15 +58,37 @@ public:
 
 	void SetHealth(float health) { Health = health; }
 	void SetMaxHealth(float maxHealth) { MaxHealth = maxHealth; }
-	
+
+	void Fire();
+	void AttackCooldown();
+	void StunEnemy();
+	void UpdateStunBar();
+	void EscapePressed();
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"))
 	float Health;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attack, meta = (AllowPrivateAccess = "true"))
+	bool bIsAttacking;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes|Stun", meta = (AllowPrivateAccess = "true"))
+	float EnemyStunTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes|Stun", meta = (AllowPrivateAccess = "true"))
+	float EnemyStunProgressBar;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes|Stun", meta = (AllowPrivateAccess = "true"))
 	FGenericTeamId TeamId;
+
+	bool EscapeButtonPressed = false;
+
+	FTimerHandle StunHandle;
+	
+	FTimerHandle AttackHandle;
+
 	
 
 	
@@ -74,7 +96,7 @@ private:
 private:
 	// Camera boom positioning the camera behind the character.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		USpringArmComponent* CameraBoom;
+	USpringArmComponent* CameraBoom;
 
 	// Camera that follows the character.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -95,5 +117,21 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
 	class UAIPerceptionStimuliSourceComponent* Stimulus;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* AttackMontage;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	USoundBase* AttackSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> WinScreen;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> LoseScreen;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> PauseScreen;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterState, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> PlayerHUD;
 };

@@ -12,6 +12,10 @@
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseEvent_Hearing.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "EnemyCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "MainGameInstance.h"
 
 
 
@@ -23,6 +27,8 @@ AMainCharacter::AMainCharacter()
 	TeamId = FGenericTeamId(1);
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
+	EnemyStunTime = 5.0f;
+	EnemyStunProgressBar = EnemyStunTime;
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -58,6 +64,17 @@ void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	CharacterState = Cast<ACharacterPlayerState>(GetPlayerState());
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+	if (LoseScreen)
+	{
+		UUserWidget* playerHud = CreateWidget<UUserWidget>(playerController, PlayerHUD);
+
+		if (playerHud)
+		{
+			playerHud->AddToViewport();
+		}
+	}
 }
 
 // Called every frame
@@ -81,11 +98,128 @@ void AMainCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &AMainCharacter::Jump);
+	PlayerInputComponent->BindAction("Fire",IE_Pressed, this, &AMainCharacter::Fire);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AMainCharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("StunEnemy", IE_Released, this, &AMainCharacter::StunEnemy);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainCharacter::Interact);
+	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &AMainCharacter::EscapePressed);
 
 
+}
+void AMainCharacter::AttackCooldown()
+{
+	bIsAttacking = false;
+}
+void AMainCharacter::StunEnemy()
+{
+	UMainGameInstance* instance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto startLocation = FollowCamera->GetComponentLocation();
+	auto endLocation = FollowCamera->GetForwardVector() * 2800;
+
+	TArray<AActor*> actorsToIgnore;
+	actorsToIgnore.Add(this);
+	FHitResult rayHit;
+	
+	//UKismetSystemLibrary::CapsuleTraceSingle(this, startLocation, startLocation + endLocation, 34.0f, 88.0f, ETraceTypeQuery::TraceTypeQuery2,
+		//true, actorsToIgnore, EDrawDebugTrace::ForDuration, rayHit, true);
+	GetWorld()->LineTraceSingleByChannel(rayHit, startLocation, startLocation + endLocation, ECollisionChannel::ECC_Visibility);
+	if (rayHit.bBlockingHit)
+	{
+		AEnemyCharacter* enemy = Cast<AEnemyCharacter>(rayHit.GetActor());
+
+		if (enemy)
+		{
+			enemy->StunEnemy(EnemyStunTime);
+			float attackDuration = PlayAnimMontage(AttackMontage);
+			UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), instance->CharacterFireSound);
+			GetWorld()->GetTimerManager().SetTimer(StunHandle, this, &AMainCharacter::UpdateStunBar, 0.1f, true);
+		}
+	}
+	
+	
+}
+void AMainCharacter::UpdateStunBar()
+{
+	if (EnemyStunProgressBar >= 0)
+	{
+		EnemyStunProgressBar -= 0.1f;
+
+	}
+	if (EnemyStunProgressBar <= 0)
+	{
+		EnemyStunProgressBar = 5;
+		
+		GetWorld()->GetTimerManager().ClearTimer(StunHandle);
+	}
+}
+void AMainCharacter::EscapePressed()
+{
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	UUserWidget* pauseMenu = CreateWidget<UUserWidget>(playerController, PauseScreen);
+
+	if (!EscapeButtonPressed)
+	{
+
+		if (pauseMenu)
+		{
+			pauseMenu->AddToViewport();
+			UGameplayStatics::SetGamePaused(GetWorld(), true);
+			playerController->SetShowMouseCursor(true);
+
+			FInputModeGameAndUI inputMode;
+			inputMode.SetWidgetToFocus(pauseMenu->TakeWidget());
+
+			playerController->SetInputMode(inputMode);
+
+			EscapeButtonPressed = true;
+		}
+	}
+	else
+	{
+		
+
+		if (pauseMenu)
+		{
+			UGameplayStatics::SetGamePaused(GetWorld(), false);
+			pauseMenu->RemoveFromParent();
+			playerController->SetShowMouseCursor(false);
+
+			FInputModeGameOnly inputMode;
+			playerController->SetInputMode(inputMode);
+
+			EscapeButtonPressed = false;
+		}
+	}
+	
+}
+void AMainCharacter::Fire()
+{
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	UMainGameInstance* instance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(this));
+
+	auto startLocation = FollowCamera->GetComponentLocation();
+	auto endLocation = FollowCamera->GetForwardVector() * 1800;
+	
+	TArray<AActor*> actorsToIgnore;
+	FHitResult rayHit;
+	if (!bIsAttacking)
+	{
+		bIsAttacking = true;
+		GetWorld()->LineTraceSingleByChannel(rayHit, startLocation, startLocation + endLocation, ECollisionChannel::ECC_Visibility);
+		if (rayHit.bBlockingHit)
+		{
+			AEnemyCharacter* enemy = Cast<AEnemyCharacter>(rayHit.GetActor());
+			
+			if (enemy)
+			{
+				UGameplayStatics::ApplyDamage(enemy, 10, playerController, this, nullptr);
+			}
+		}
+		float attackDuration = PlayAnimMontage(AttackMontage);
+		UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), instance->CharacterFireSound);
+		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &AMainCharacter::AttackCooldown, attackDuration);
+	}
 }
 void AMainCharacter::MoveForward(float Value)
 {
@@ -167,8 +301,20 @@ float AMainCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 void AMainCharacter::OnDeath()
 {
 	GetCharacterMovement()->DisableMovement();
-	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	
+
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(playerController);
+
+	if (LoseScreen)
+	{
+		UUserWidget* LoseScreenWidget = CreateWidget<UUserWidget>(playerController, LoseScreen);
+
+		if (LoseScreenWidget)
+		{
+			LoseScreenWidget->AddToViewport();
+			playerController->SetShowMouseCursor(true);
+		}
+	}
 }
 
 void AMainCharacter::SetupStimulus()
