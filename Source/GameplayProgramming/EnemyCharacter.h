@@ -31,7 +31,7 @@ public:
 	APathPoints& GetPatrolPathActor() { return *PatrolPath; }
 
 	UFUNCTION(BlueprintCallable)
-	void StunEnemy();
+	void StunEnemy(float stunTime);
 
 	void UnStunEnemy();
 
@@ -71,6 +71,10 @@ public:
 
 	void ResetEnemyAttack();
 
+	UFUNCTION()
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
+
+
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
@@ -95,6 +99,17 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stun Particle", meta = (AllowPrivateAccess = "true"))
 	class UParticleSystem* StunParticle;
+	
+	FTimerHandle UnstunTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
+	float Health;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
+	float MaxHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes", meta = (AllowPrivateAccess = "true"))
+	USoundBase* AttackSound;
 
 
 
@@ -105,8 +120,7 @@ private:
 	APathPoints* PatrolPath;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes|Stun", meta = (AllowPrivateAccess = "true"))
-	float StunTime = 5.0f;
+	
 
 	
 

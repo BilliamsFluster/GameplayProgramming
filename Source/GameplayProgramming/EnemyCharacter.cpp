@@ -14,12 +14,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Particles/ParticleSystem.h"
+#include "MainGameInstance.h"
 
 
 // Sets default values
 AEnemyCharacter::AEnemyCharacter()
 	:AttackCollisionRadius(200.0f), EnemyAttackTime(1.0f), EnemyDamage(45.0f)
 {
+	MaxHealth = 100.0f;
+	Health = MaxHealth;
 	PrimaryActorTick.bCanEverTick = true;
 	
 	/*Setup Attachments*/
@@ -96,7 +99,7 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
-void AEnemyCharacter::StunEnemy()
+void AEnemyCharacter::StunEnemy(float stunTime)
 {
 	AController* BaseController = GetController();
 	AEnemyController* EnemyController = Cast<AEnemyController>(BaseController);
@@ -108,14 +111,14 @@ void AEnemyCharacter::StunEnemy()
 			EnemyController->GetBlackboard()->SetValueAsBool(UKismetSystemLibrary::MakeLiteralName("IsStunned"), true);
 
 			// Set up a timer to call UnstunEnemy after the stun duration
-			FTimerHandle UnstunTimerHandle;
+			UE_LOG(LogTemp, Warning, TEXT("Stun Time is: %f"), stunTime);
 			EnemyAnim->bIsStunned = true;
 			if (StunParticle)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), StunParticle, FTransform{ GetActorRotation(),GetActorLocation(),{1,1,1} });
 
 			}
-			GetWorld()->GetTimerManager().SetTimer(UnstunTimerHandle, this, &AEnemyCharacter::UnStunEnemy, StunTime, false);
+			GetWorld()->GetTimerManager().SetTimer(UnstunTimerHandle, this, &AEnemyCharacter::UnStunEnemy, stunTime, false);
 
 		}
 	}
@@ -212,6 +215,8 @@ void AEnemyCharacter::OnAttackOverlapEnd(UPrimitiveComponent* OverlappedComponen
 
 void AEnemyCharacter::Attack()
 {
+	UMainGameInstance* instance = Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(this));
+
 	if (EnemyAnim->bCanAttackPlayer == true)
 	{
 		if (EnemyAnim->bIsAttacking)
@@ -238,6 +243,7 @@ void AEnemyCharacter::Attack()
 					}
 				}
 				EnemyAnim->Montage_Play(EnemyAnim->AttackMontage);
+				UGameplayStatics::PlaySoundAtLocation(this, AttackSound, GetActorLocation(), instance->EnemySwingSound);
 				GetWorld()->GetTimerManager().SetTimer(EnemyAttackTimer, this, &AEnemyCharacter::ResetEnemyAttack, EnemyAttackTime, EnemyAnim->bCanAttackPlayer);
 			
 			}
@@ -249,5 +255,22 @@ void AEnemyCharacter::Attack()
 void AEnemyCharacter::ResetEnemyAttack()
 {
 	Attack();
+}
+
+float AEnemyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	if (DamageCauser)
+	{
+		if (Health - DamageAmount <= 0)
+		{
+			Health = 0;
+			Destroy();
+		}
+		else
+		{
+			Health -= DamageAmount;
+		}
+	}
+	return Health;
 }
 
